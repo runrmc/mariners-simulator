@@ -7,6 +7,24 @@ cache.enable()
 
 STATS_DIR = "data/stats"
 
+def fix_name(name: str) -> str:
+    """Fix encoding issues in player names."""
+    name = str(name)
+    # Remove suffixes like *, #
+    name = name.replace("*", "").replace("#", "").strip()
+    # Fix \x escape sequences (2024-style)
+    if "\\" in name:
+        try:
+            name = bytes(name, "utf-8").decode("unicode_escape").encode("latin1").decode("utf-8")
+        except Exception:
+            pass
+    # Fix garbled latin encoding (2001-style)
+    try:
+        name = name.encode("latin1").decode("utf-8")
+    except Exception:
+        pass
+    return name
+
 
 def fetch_mariners_batting(year: int) -> pd.DataFrame:
     """Pull Mariners batting stats for a given year and cache locally."""
@@ -38,6 +56,7 @@ def fetch_mariners_batting(year: int) -> pd.DataFrame:
 
     # Rename Player to Name for consistency
     batting = batting.rename(columns={"Player": "Name"})
+    batting["Name"] = batting["Name"].apply(fix_name)
 
     # Convert numeric columns
     for col in ["G", "PA", "H", "2B", "3B", "HR", "BB", "SO"]:
