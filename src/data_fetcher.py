@@ -1,7 +1,7 @@
 import pandas as pd
-from pybaseball import batting_stats_bref
+import requests
 import os
-
+from io import StringIO
 from pybaseball import cache
 cache.enable()
 
@@ -17,24 +17,42 @@ def fetch_mariners_batting(year: int) -> pd.DataFrame:
         return pd.read_csv(stats_path)
 
     print(f"Fetching {year} Mariners batting stats from Baseball Reference...")
-    stats = batting_stats_bref(year)
-    mariners = stats[stats["Tm"].str.contains("Seattle", na=False)].copy()
+
+    url = f"https://www.baseball-reference.com/teams/SEA/{year}.shtml"
+    headers = {"User-Agent": "Mozilla/5.0"}
+    response = requests.get(url, headers=headers)
+
+    if response.status_code != 200:
+        raise Exception(f"Failed to fetch data for {year}: HTTP {response.status_code}")
+
+    html = response.text
+    tables = pd.read_html(StringIO(html))
+
+    # Table 0 is the full season batting table
+    batting = tables[0].copy()
+
+    # Clean up — remove summary rows
+    batting = batting[batting["Player"].notna()]
+    batting = batting[batting["Player"] != "Player"]
+    batting = batting[~batting["Player"].str.contains("Team|Total|Totals", na=False)]
+
+    # Rename Player to Name for consistency
+    batting = batting.rename(columns={"Player": "Name"})
+
+    # Convert numeric columns
+    for col in ["G", "PA", "H", "2B", "3B", "HR", "BB", "SO"]:
+        batting[col] = pd.to_numeric(batting[col], errors="coerce").fillna(0).astype(int)
 
     cols = ["Name", "G", "PA", "H", "2B", "3B", "HR", "BB", "SO"]
-    mariners = mariners[cols].reset_index(drop=True)
+    batting = batting[cols].reset_index(drop=True)
 
     os.makedirs(STATS_DIR, exist_ok=True)
-    mariners.to_csv(stats_path, index=False)
+    batting.to_csv(stats_path, index=False)
     print(f"Saved {year} stats to {stats_path}")
 
-    return mariners
+    return batting
 
 
 def load_roster(year: int) -> pd.DataFrame:
     """Load a cached roster, fetching it first if needed."""
     return fetch_mariners_batting(year)
-
-
-if __name__ == "__main__":
-    df = fetch_mariners_batting(2024)
-    print(df)
