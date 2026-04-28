@@ -73,4 +73,10 @@ def run_single_game(year1: int, year2: int):
     # Box score
     print(generate_box_score(result))
 
+    # Export option
+    choice = input("  Export box score to CSV? (y/n): ").strip().lower()
+    if choice == "y":
+        from src.output.exporter import export_box_score_csv
+        export_box_score_csv(result)
+
     return result

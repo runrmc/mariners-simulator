@@ -222,6 +222,12 @@ def run_tournament(years: list[int], title: str = "MARINERS ALL-TIME TOURNAMENT"
         print(f"  AVG: {avg:.3f}  HR: {mvp_stats.get('home_runs',0)}  RBI: {mvp_stats.get('rbi',0)}")
         print(f"{'='*55}\n")
 
+    # Export option
+    choice = input("  Export tournament results to CSV? (y/n): ").strip().lower()
+    if choice == "y":
+        from src.output.exporter import export_tournament_csv
+        export_tournament_csv(result)
+
     return {
         "champion": champion,
         "mvp": mvp_name,

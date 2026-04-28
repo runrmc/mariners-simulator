@@ -73,6 +73,12 @@ def run_quick_sim(year1: int, year2: int, n_games: int):
     print(f"  🏆 {champion} Mariners win the simulation series!")
     print(f"{'='*55}\n")
 
+    # Export option
+    choice = input("  Export results to CSV? (y/n): ").strip().lower()
+    if choice == "y":
+        from src.output.exporter import export_quick_sim_csv
+        export_quick_sim_csv(result)
+
     return {
         "year1": year1,
         "year2": year2,

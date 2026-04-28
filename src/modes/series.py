@@ -106,6 +106,12 @@ def run_series(year1: int, year2: int):
     ) else year2
     print_mvp(mvp_name, mvp_stats, mvp_year)
 
+    # Export option
+    choice = input("  Export series results to CSV? (y/n): ").strip().lower()
+    if choice == "y":
+        from src.output.exporter import export_series_csv
+        export_series_csv(result, year1, year2)
+
     return {
         "winner": series_winner,
         "wins1": wins1,
