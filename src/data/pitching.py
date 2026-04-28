@@ -4,6 +4,7 @@ import os
 from io import StringIO
 from src.data.batting import fix_name
 from src.models.pitcher import Pitcher
+import time
 
 STATS_DIR = "data/stats"
 
@@ -20,6 +21,7 @@ def fetch_mariners_pitching(year: int, top_n: int = 5) -> pd.DataFrame:
 
     url = f"https://www.baseball-reference.com/teams/SEA/{year}.shtml"
     headers = {"User-Agent": "Mozilla/5.0"}
+    time.sleep(1) # Be polite to Baseball Reference
     response = requests.get(url, headers=headers)
 
     if response.status_code != 200:

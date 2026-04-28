@@ -3,6 +3,8 @@ import requests
 import os
 from io import StringIO
 from pybaseball import cache
+from datetime import date
+import time
 cache.enable()
 
 STATS_DIR = "data/stats"
@@ -36,6 +38,7 @@ def fetch_mariners_batting(year: int) -> pd.DataFrame:
 
     url = f"https://www.baseball-reference.com/teams/SEA/{year}.shtml"
     headers = {"User-Agent": "Mozilla/5.0"}
+    time.sleep(1) # Be polite to Baseball Reference
     response = requests.get(url, headers=headers)
 
     if response.status_code != 200:
@@ -63,3 +66,15 @@ def fetch_mariners_batting(year: int) -> pd.DataFrame:
     print(f"Saved {year} batting stats to {stats_path}")
 
     return batting
+
+
+def get_latest_completed_season() -> int:
+    """
+    Returns the most recent completed MLB season.
+    If we're before October 1, the previous year is the last complete season.
+    """
+    today = date.today()
+    if today.month >= 10:
+        return today.year
+    else:
+        return today.year - 1
