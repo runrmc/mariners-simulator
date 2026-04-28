@@ -35,4 +35,36 @@ class Pitcher:
         A league-average ERA is ~4.50. We scale modifiers around that.
         Good pitchers suppress hits, walks, HRs and increase strikeouts.
         """
-        era_diff = self.era - 4.50  # positive = worse
+        era_diff = self.era - 4.50
+
+        hit_mod = era_diff * 0.005
+        k_mod = -era_diff * 0.005
+        bb_mod = era_diff * 0.003
+        hr_mod = era_diff * 0.002
+
+        return {
+            "hit_mod": hit_mod,
+            "k_mod": k_mod,
+            "bb_mod": bb_mod,
+            "hr_mod": hr_mod,
+        }
+
+    def record_result(self, result: str):
+        """Track what happened during a plate appearance."""
+        if result in ("single", "double", "triple", "home_run"):
+            self.hits_allowed += 1
+        if result == "home_run":
+            self.hrs_allowed += 1
+        if result == "walk":
+            self.walks_allowed += 1
+        if result == "strikeout":
+            self.strikeouts_game += 1
+
+    def __str__(self):
+        return (
+            f"{self.name} | "
+            f"ERA:{self.era:.2f} "
+            f"WHIP:{self.whip:.2f} "
+            f"K/9:{self.k_per_9:.1f} "
+            f"BB/9:{self.bb_per_9:.1f}"
+        )
